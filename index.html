@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Socket io</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css?family=Armata" rel="stylesheet">
+        <!--  Custom Styles -->
+        <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+        <div id="mainContainer" class="container-fluid">
+            <div id="onlineUsers" class="col-md-3">
+                <h3 class="text-center">Online users</h3>
+                <ul id="onlineUsersList">
+
+                </ul>
+            </div>
+
+            <div id="userFormWrapper" class="col-md-6">
+                <form id="userForm" method="post">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input autocomplete="off" type="text" id="username" class="form-control" name="" value="">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" id="submit" class="btn btn-success" name="button">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!--<div class="col-md-3" id="recievedRequests">
+                <h3 class="text-center">Requests</h3>
+            </div>-->
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+        <script type="text/javascript" src="/node_modules/socket.io-client/dist/socket.io.js"></script>
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="/client.js?v=3"></script>
+    </body>
+</html>
