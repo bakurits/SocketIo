@@ -1,0 +1,99 @@
+* {
+    font-family: 'Armata', sans-serif;
+}
+
+body {
+    background: #333;
+    color:white;
+}
+
+html, body, #mainContainer { height: 100%; }
+
+#userFormWrapper {
+    margin-top: 20px;
+}
+
+#onlineUsers {
+    border-right: 1px solid gray;
+    height: 100%;
+}
+
+#onlineUsers h3, #recievedRequests h3 {
+    border-bottom: 1px solid gray;
+    width: 100%;
+    padding-bottom: 5px;
+}
+
+#onlineUsersList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.onlineUser {
+    margin-bottom: 5px;
+    background: #4c5f65;
+    padding: 5px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.activeUser {
+    background: #286090 !important;
+}
+
+.sendReq {
+    font-size: 12px;
+    background: #a94442;
+    padding: 3px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.sendReq:hover {
+    opacity: 0.6;
+}
+
+.navigation {
+    float: right;
+    display: inline;
+}
+
+.navBtn {
+    padding: 3px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.accept {
+    background: #5cb85c !important;
+}
+
+.ready {
+    background: #5cb85c !important;
+}
+
+.cancel {
+    background: #a94442 !important;
+}
+
+.sent {
+    background: #f0ad4e !important; 
+    padding: 3px;
+    border-radius: 4px;
+    transition: 0.2s;
+    font-size: 12px;
+}
+
+.canceled {
+    background: #a94442 !important; 
+    padding: 3px;
+    border-radius: 4px;
+    transition: 0.2s;
+    font-size: 12px;
+}
+
+.hello  {
+    color: #8a6d3b;
+}
