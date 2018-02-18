@@ -10,24 +10,24 @@ window.onload = function() {
         onlineUsersList.innerHTML = '';
         let html = '';
 
-        if(data.onlineUsers.length) {
-            for(let user of data.onlineUsers){
-                if(userName != user.userName)
-                    html += `<li data-sid="${user.sid}" class="onlineUser onlineUser${user.sid}">${user.userName} 
-                    <div class="navigation"><span class="sendReq">Send Request</span></div> 
-                    </li>`;
-            }
-
-            onlineUsersList.innerHTML = html;
+        for(let user in data.onlineUsers){
+            if(userName != user)
+                html += `<li data-sid="${user}" class="onlineUser onlineUser${user}">${user} 
+                <div class="navigation"><span class="sendReq">Send Request</span></div> 
+                </li>`;
         }
+
+        onlineUsersList.innerHTML = html;
     });
 
-    io.on('requests', (requests) => {
-        for(let item in requests){
-            for(let sid of requests[item]) {
-                $('.onlineUser'+sid).find('.navigation').html(`<span class="navBtn accept">Accept</span> <span class="navBtn cancel">Cancel</span>`);
-            }
-        }
+    io.on('requests', (data) => {
+        console.log(data.sendUser);
+        $('.onlineUser'+data.sendUser).find('.navigation').html(`<span class="navBtn accept">Accept</span> <span class="navBtn cancel">Cancel</span>`);
+    });
+
+    io.on('sends', (data) => {
+        console.log(data.sendUser);
+        $('.onlineUser'+data.reqUser).find('.navigation').removeClass('sendReq').addClass('sent').html('Sent');
     });
 
     userForm.addEventListener('submit', (e) => {
@@ -53,12 +53,12 @@ window.onload = function() {
     $(document).on('click', '.sendReq', (e) => {
         e.preventDefault();
         let parent = e.currentTarget.parentNode.parentNode;
-        let sid = parent.getAttribute('data-sid');
+        let reqUser = parent.getAttribute('data-sid');
         
         $(e.currentTarget).removeClass('sendReq').addClass('sent').html('Sent');
 
         io.emit('sendRequest', {
-            sid
+            reqUser
         });
     });
 

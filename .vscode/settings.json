@@ -10,11 +10,6 @@
         "[United Ubuntu]": {
             "editorCursor.background": "#a6e202",
             "editorCursor.foreground":  "#a6e202"
-        },
-
-        "Material Theme": {
-            "editorCursor.background": "#a6e202",
-            "editorCursor.foreground":  "#a6e202"
         }
     }
     
