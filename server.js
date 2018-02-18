@@ -18,18 +18,19 @@ app.get('/', function (req, res) {
 });
 
 server = http.Server(app);
-server.listen(3000);
+
+server.listen(4000);
 
 io = socketIO(server);
 
-let con = mysql.createConnection({
+/* let con = mysql.createConnection({
     host: "127.0.0.1",
     user: "root",
     password: "",
     database: "kings_platform"
 });
 
-con.connect();
+con.connect(); */
 const subjCount = 4;
 
 function sqlQueryForSubs(subjs) {
@@ -47,10 +48,10 @@ function sqlQueryForSubs(subjs) {
 }
 
 function getQuestions(subjs, clas, count) {
-    con.query("SELECT * FROM questions WHERE " +  sqlQueryForSubs(subjs) + " AND class = " + clas + " ORDER BY RAND() LIMIT " + count, function (err, result, fields) {
+/*     con.query("SELECT * FROM questions WHERE " +  sqlQueryForSubs(subjs) + " AND class = " + clas + " ORDER BY RAND() LIMIT " + count, function (err, result, fields) {
           if (err) throw err;
           return result;
-        });
+        }); */
 };
 
 function mapContains(dct, obj) {
@@ -61,7 +62,11 @@ function mapContains(dct, obj) {
 }
 
 function getUserBySid(sid) {
+    console.log("\n\nyleo\n\n\n");
+    console.log(sid);
     for (let user in onlineUsers) {
+        console.log(user);
+        console.log(onlineUsers[user]);
         if (onlineUsers[user].indexOf(sid) != -1) return user;
     }
     
@@ -147,11 +152,13 @@ io.on('connection', (socket) => {
 
     socket.on('cancel', (data) => {
         console.log("cancel");
-        for( let i = 0; i < requests[socket.id].length; i++ ) {
-            if(data.sid == requests[socket.id][i]){
-                requests[socket.id].splice(i, 0);
-                io.sockets.connected[data.sid].emit('canceled', {
-                    sid: socket.id
+        let dataName = getUserBySid(data.sid);
+        let socketName = getUserBySid(socket.id);
+        for( let i = 0; i < requests[socketName].length; i++ ) {
+            if(dataName == requests[socketName][i]){
+                requests[socketName].splice(i, 0);
+                io.sockets.connected[dataName].emit('canceled', {
+                    sid: socketName
                 })
             }
         }
@@ -161,13 +168,32 @@ io.on('connection', (socket) => {
         console.log("accept");
         console.log(onlineUsers);
         console.log(data.sid, socket.id);
-        players = [getUserBySid(data.sid), getUserBySid(socket.id)];
+        let player1 = data.sid;
+        let player2 = getUserBySid(socket.id);
+        players = [player1, player2];
+        console.log(players);
         
-        for (let player of players) {
+        for (var playerSid1 of onlineUsers[player1]) {
+            io.sockets.connected[playerSid1].emit(
+                'accepted', {
+                    oponent : player2
+                }
+            )
+        }
+
+        for (var playerSid2 of onlineUsers[player2]) {
+            io.sockets.connected[playerSid2].emit(
+                'accepted', {
+                    oponent : player1
+                }
+            )
+        }
+        
+        /* for (let player of players) {
             io.sockets.connected[player.sid].emit('accepted', {
                 players
             })
-        }
+        } */
     });
     
 
@@ -179,6 +205,8 @@ io.on('connection', (socket) => {
         if (onlineUsers[user] === undefined) return;
         let indx = onlineUsers[user].indexOf(socket.id);
         onlineUsers[user].splice(indx, 1);
+        if (onlineUsers[user].length == 0) delete onlineUsers[user];
+        delete requests[user];
         /* for( let i = 0; i < onlineUsers.length; i++) {
             if(onlineUsers[i].sid == socket.id){
                 onlineUsers.splice(i,1);

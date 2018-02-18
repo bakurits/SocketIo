@@ -97,3 +97,17 @@ html, body, #mainContainer { height: 100%; }
 .hello  {
     color: #8a6d3b;
 }
+
+
+.lgcpsx {
+    background: white;
+    border: 2px solid #e4dd09;
+    width: 400px;
+    max-width: 100%;
+    font-size: 20px;
+    height: 45px;
+    padding: 0 10px;
+    border-radius: 40px;
+    text-align: center;
+    transition: all 0.3s;
+}

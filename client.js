@@ -91,14 +91,17 @@ window.onload = function() {
     });
 
     io.on('accepted', (data) => {
-        if(data.players.length) {
-            $('#scores').html('');
-        }
+               
+        // for(let player of data.players) {
+        let player1info = '<>';
 
-        for(let player of data.players) {
-            $('#scores').append(`<h3>${player.userName} - </h3>`);
-            $('.onlineUser'+player.sid).find('.navigation').html(`<span class="navBtn ready">Ready</span>`);
-        }
+        let html = '<div style="width: 100%; overflow: hidden;">';
+        html += `<div style="width: 600px; float: left;"> <div id = "playerName"> ${userName} </div> <div id = "playerScore"><span>0</span></div> </div>`
+        html += `<div style="margin-left: 620px;"> <div id = "playerName"> ${data.oponent} </div> <div id = "playerScore"><span>0</span></div> </div>`;
+        html += '</div>';
+        html += '<input style="border-color: rgb(15, 218, 15);" value="'+'რამ სიმაღლეა ევერესტი ?'+'" disabled type="text" class="lgcpsx">';
+        $('#userFormWrapper').append(html);
+        $('.onlineUser'+data.oponent).find('.navigation').html(`<span class="navBtn ready">Ready</span>`)
     });
 }
 
