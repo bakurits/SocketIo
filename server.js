@@ -3,19 +3,27 @@ let express  = require('express'),
     path     = require('path'),
     http     = require('http'),
     socketIO = require('socket.io'),
+    bodyParser = require('body-parser'),
     server, io;
 let mysql = require('mysql');
 
 let onlineUsers      = {}, // kay is username and values array of socketId
     onelineSockets   = [],
-    players          = [],
-    requests         = {}; // key is receiver and values array - senders
+    players          = [], // stores players game status
+    requests         = {}, // key is receiver and values array - senders
+    gameInfo = {}, // key game id and value player names and questions
+    playerGameStatus = {}; // Stores player game status
 
 app.use(express.static(path.join(__dirname)));
+
+app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
+
+
 
 server = http.Server(app);
 
@@ -23,14 +31,14 @@ server.listen(4000);
 
 io = socketIO(server);
 
-/* let con = mysql.createConnection({
+let con = mysql.createConnection({
     host: "127.0.0.1",
     user: "root",
     password: "",
     database: "kings_platform"
 });
 
-con.connect(); */
+con.connect();
 const subjCount = 4;
 
 function sqlQueryForSubs(subjs) {
@@ -47,11 +55,26 @@ function sqlQueryForSubs(subjs) {
     return ("(" + ans + ")");
 }
 
-function getQuestions(subjs, clas, count) {
-/*     con.query("SELECT * FROM questions WHERE " +  sqlQueryForSubs(subjs) + " AND class = " + clas + " ORDER BY RAND() LIMIT " + count, function (err, result, fields) {
-          if (err) throw err;
-          return result;
-        }); */
+
+function getQuestions(subjs, clas, count,callBack) {
+    let query = "SELECT id, statement, choices FROM questions WHERE " +  sqlQueryForSubs(subjs) + " AND class = " + clas + " ORDER BY RAND() LIMIT " + count;
+    con.query(query, function (err, result, fields) {
+        if (err) 
+            callBack(err,null);
+        else
+            callBack(null,result);    
+    });  
+
+    //     function(err,data){
+    //         if (err) {
+    //             // error handling code goes here
+    //             console.log("ERROR : ",err);            
+    //         } else {            
+    //             // code to execute on data retrieval
+    //             console.log("result from db is : ",data);   
+    //         }    
+    
+    // }
 };
 
 function mapContains(dct, obj) {
@@ -62,8 +85,6 @@ function mapContains(dct, obj) {
 }
 
 function getUserBySid(sid) {
-    console.log("\n\nyleo\n\n\n");
-    console.log(sid);
     for (let user in onlineUsers) {
         console.log(user);
         console.log(onlineUsers[user]);
@@ -77,6 +98,50 @@ function getUserBySid(sid) {
     }
     return null; */
 }
+
+const queryCountInQuiz = 6;
+function getQuiz(gameId, player1, player2) {
+    var questions = getQuestions(1, 4, queryCountInQuiz,function(err,data){
+        if (err) {
+            // error handling code goes here
+            console.log("ERROR : ",err);            
+        } else {            
+            // code to execute on data retrieval
+            console.log("result from db is : ",data);
+            gameInfo[gameId] = { players : [player1, player2], questions: data};  
+            console.log("\n\n kaia2 \n\n");
+            console.log(gameInfo[gameId]);
+  
+            playerGameStatus[player1] = gameId; playerGameStatus[player2] = gameId; 
+        }    
+
+});
+    console.log(questions);
+    
+}
+
+
+app.post('/checkAnswer',function(req,res){
+    console.log("\n\ndelia delia\n\n\n");
+    //console.log(req);
+    
+    var question = req.body.question;
+    var answer = req.body.answer;
+
+    console.log(question);
+    var data = {
+        "Data" :""
+    }
+    console.log("SELECT * FROM questions WHERE statement = " + question);
+    con.query("SELECT * FROM questions WHERE statement = " + question, function (err, result, fields) {
+        if (err) throw err;
+        if (result.length != 0) {
+            console.log("here I am \n\n");
+            console.log(result);
+        }
+        return result;
+      });
+});
 
 io.on('connection', (socket) => {
     socket.on('newUser', (user) => {
@@ -170,9 +235,13 @@ io.on('connection', (socket) => {
         console.log(data.sid, socket.id);
         let player1 = data.sid;
         let player2 = getUserBySid(socket.id);
-        players = [player1, player2];
+        players.push([player1, player2]);
         console.log(players);
         
+        getQuiz(players.length, player1, player2);
+        console.log("\n\n kaia \n\n");
+        console.log(gameInfo[players.length].questions);
+
         for (var playerSid1 of onlineUsers[player1]) {
             io.sockets.connected[playerSid1].emit(
                 'accepted', {

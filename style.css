@@ -111,3 +111,37 @@ html, body, #mainContainer { height: 100%; }
     text-align: center;
     transition: all 0.3s;
 }
+.Qstat {
+    font-size: 27px;
+    padding: 0 0 8px 0;
+    /* border-bottom: 1px solid; */
+    color: #ffffff;
+    font-weight: bold;
+    text-align: center;
+}
+
+#tstcontzd {
+    padding: 10px 40px 15px 40px;
+}
+
+.D1dwk, .D2dwk, .D3dwk {
+    position: relative;
+    color: #fff;
+    padding: 0.6vw 1.2vw;
+    font-size: 1.3em;
+    font-family: BPGBannerCaps;
+    border-radius: 5px;
+    box-shadow: #000 0 2px 5px;
+    border: 2px solid #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-block;
+    margin: 0.6vw;
+    text-align: center;
+    display: flex;
+    align-items: center;
+}
+
+.D1dwk {
+    background: #98bda6;
+}
