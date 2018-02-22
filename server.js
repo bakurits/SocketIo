@@ -27,6 +27,8 @@ function shuffleArray(array) {
     return array;
 }
 
+const timeForAnswer = 10;  // კითხვაზე პასუხის გაცემის დრო
+
 class User {
     constructor(userName) {
         this._userName = userName;
@@ -87,7 +89,27 @@ class Game {
         this._quizQuestionIndex = 0;
         this._questions = [];
         this._scores = [0, 0];
-        this._curQuestionStatus[0, 0]; // 0 meens not answered
+        this._curQuestionStatus = [0, 0]; // 0 meens not answered
+        this.Clockk = {
+            totalSeconds: timeForAnswer,
+            nowSeconds: timeForAnswer,
+        
+            start: function () {
+                var self = this;
+                this.interval = setInterval(function () {
+                    self.nowSeconds -= 1;
+                    if (self.nowSeconds == 0) {
+                        this.answered(this.players[0], 0);
+                        this.answered(this.players[1], 0);
+                    }
+                    //if(self.nowSeconds<0) {if(self.nowSeconds+self.dntm*15*60<0) self.dntm+=1; }
+                }, 1000);
+            },
+        
+            reset: function(){
+                this.nowSeconds = this.totalSeconds;
+            },
+        };
     };
 
     set players(players1) {
@@ -146,11 +168,90 @@ class Game {
         return this._questions;
     }
 
-    answered(player) {
-        let playerId = 0;
-        if (player != this.players[0]) playerId = 1;
+    answered(player, succ) {
 
+        let playerId = 0; // 0 ან 1
+        if (player != this.players[0]) playerId = 1;
+        let opponentId = 1 - playerId;
+        if (this._curQuestionStatus[playerId] != 0) return; 
+        this._scores[playerId] += (this.Clockk.nowSeconds * 2) * succ;
+        this._curQuestionStatus[playerId] = 1;
         
+        onlineUsers[players[playerId]].forEach(element => {
+            io.sockets.connected[element].emit(
+                'answered', {
+                    succ : succ,
+                    newScore : this._scores[playerId]
+                }
+            )
+        });
+
+        if (this._curQuestionStatus[opponentId] == 1) {
+            this._curQuestionStatus[0] = this._curQuestionStatus[1] = 0;
+            this.quizQuestionIndex++;
+            this.Clockk.reset();
+            if (this._quizQuestionIndex >= queryCountInQuiz) {
+                // მორჩა თამაში
+                onlineUsers[players[playerId]].forEach(element => {
+                    io.sockets.connected[element].emit(
+                        'gameFinished', {
+                            oponent : this._scores[opponentId],
+                            me : this._scores[playerId]
+                        }
+                    )
+                });
+
+                onlineUsers[players[opponentId]].forEach(element => {
+                    io.sockets.connected[element].emit(
+                        'gameFinished', {
+                            oponent : this._scores[playerId],
+                            me : this._scores[opponentId]
+                        }
+                    )
+                });
+            } else {
+                // ახალი კითხვა
+                let quest = this._questions[this._quizQuestionIndex];
+                let clonedQuest = {
+                    statement : quest.statement,
+                    choices : quest.choices,
+                    id: quest.id
+                }
+                onlineUsers[players[playerId]].forEach(element => {
+                    io.sockets.connected[element].emit(
+                        'newQuestion', {
+                            question : clondeQuestion
+                        }
+                    )
+                });
+
+                onlineUsers[players[opponentId]].forEach(element => {
+                    io.sockets.connected[element].emit(
+                        'newQuestion', {
+                            question : clondeQuestion
+                        }
+                    )
+                });
+            }
+        } else {
+            // ერთმა უპასუხა
+            onlineUsers[players[playerId]].forEach(element => {
+                io.sockets.connected[element].emit(
+                    'newQuestion', {
+                        question : clondeQuestion
+                    }
+                )
+            });
+
+            onlineUsers[players[opponentId]].forEach(element => {
+                io.sockets.connected[element].emit(
+                    'newQuestion', {
+                        question : clondeQuestion
+                    }
+                )
+            });
+        }
+
     }
     
 }
@@ -195,7 +296,7 @@ let con = new mysql({
 });
 
 //con.connect();
-const subjCount = 4;
+const subjCount = 4; // საგნების საერთო რაოდენობა
 
 function sqlQueryForSubs(subjs) {
     let ans = "";
@@ -269,9 +370,10 @@ function getClonedQuestion(gameId, questionIndex) {
 
     return clonedQuest;
 }
-const queryCountInQuiz = 6;
+const queryCountInQuiz = 6; // კითხვების რაოდენობა ერთ თამაშში
 
 io.on('connection', (socket) => {
+
     socket.on('newUser', (user) => {
         console.log("newUser");
         
@@ -365,16 +467,17 @@ io.on('connection', (socket) => {
     
 
     socket.on('checkAnswer', (data) => {
-        let curGame = gameInfo[onlineUsers[getUserBySid(socket.id)].gameStatus];
+        let usr = getUserBySid(socket.id);
+        let curGame = gameInfo[onlineUsers[usr].gameStatus];
         if (curGame === undefined) { console.log("this socket currently doesn't plays"); return; }
         let quest = curGame.questions[curGame.quizQuestionIndex];
         Game
         /* console.log(quest.answer);
         console.log(data.answ) */
         if (quest.answer == data.answer)
-            console.log("ყოჩაღ ძმაო");
+            curGame.answered(usr, 1);
         else {
-            console.log("ჰა! რას აკეთებ");
+            curGame.answered(usr, 0);
         }
         
     });
