@@ -5,14 +5,170 @@ let express  = require('express'),
     socketIO = require('socket.io'),
     bodyParser = require('body-parser'),
     server, io;
-let mysql = require('mysql');
+let mysql = require('sync-mysql');
+let PHPUnserialize = require('php-unserialize');
 
-let onlineUsers      = {}, // kay is username and values array of socketId
-    onelineSockets   = [],
+let onlineUsers      = {}, // kay is username and value User
+    onlineSockets   = {}, // kay is socketId and value is userName
     players          = [], // stores players game status
     requests         = {}, // key is receiver and values array - senders
-    gameInfo = {}, // key game id and value player names and questions
+    gameInfo = {}, // key game id and game
     playerGameStatus = {}; // Stores player game status
+
+function shuffleArray(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    while (0 !== currentIndex) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+    return array;
+}
+
+class User {
+    constructor(userName) {
+        this._userName = userName;
+        this._onlineSockets = [];
+        this._gameStatus = -2;   // -1 meens dont pleying searching, if its postive 
+                                // than it's game id which player is playing 
+    };
+
+    set userName(userName) {
+        this._userName = userName;
+    }
+
+    addSocket(socketId) {
+        this._onlineSockets.push(socketId);
+    }
+
+    removeSocket(socketId) {
+        let indOfSocket = this._onlineSockets.indexOf(socketId);
+        if (indOfSocket != -1) {
+            this._onlineSockets.splice(0, 1);
+        }
+    }
+
+    set gameStatus(gameStatus) {
+        this._gameStatus = gameStatus;
+    }
+
+    get userName() {
+        return this._userName;
+    }
+    
+    get onlineSockets() {
+        return this._onlineSockets;
+    }
+
+    get gameStatus() {
+        return this._gameStatus;
+    }
+
+}
+
+function jsonToArray(parsed){
+
+   // var parsed = JSON.parse(json);
+
+    var arr = [];
+
+    for(var x in parsed){
+        arr.push(parsed[x]);
+    }
+    return arr;
+}
+
+class Game {
+    constructor(player1, player2, gameId) {
+        this._players = [player1, player2];
+        this._gameId = gameId;
+        this._quizQuestionIndex = 0;
+        this._questions = [];
+        this._scores = [0, 0];
+        this._curQuestionStatus[0, 0]; // 0 meens not answered
+    };
+
+    set players(players1) {
+        this._players = players1;
+    }
+
+    set gameId(gameId) {
+        this._gameId = gameId;
+    }
+    set quizQuestionIndex(quizQuestionIndex) {
+        this._quizQuestionIndex = quizQuestionIndex;
+    }
+    /* set questions(subjs) {
+        Imposter.init(getQuestions(subjs, clas, queryCountInQuiz)).each(function(question) {
+            
+            //console.log(Json.parse(question.statement) + " " +question.choices);
+        });
+        this.questions = data;
+    } */
+    setQuestions(subjs, clas) {
+        let curData = [];
+        Imposter.init(getQuestions(subjs, clas, queryCountInQuiz)).each(function(question) {
+            let data = {
+                statement: PHPUnserialize.unserialize(question.statement)[1],
+                choices: jsonToArray(PHPUnserialize.unserialize(question.choices)),
+                answer: "",
+                id : question.id
+            }
+            //statement['statement'];
+            //console.log(statement[1]);
+            //console.log(question.statement + " " +question.choices);
+            // data[choices].splice(0, .length - 4);
+           // let arr = jsonToArray(data.choices);
+            data.answer = data.choices[0];
+            data.choices = shuffleArray(data.choices);
+            console.log(data);
+            curData.push(data);
+            
+        });
+        this._questions = curData;
+    }
+
+    get players() {
+        return this._players;
+    }
+
+    get gameId() {
+        return this._gameId;
+    }
+
+    get quizQuestionIndex() {
+        return this._quizQuestionIndex;
+    }
+
+    get questions() {
+        return this._questions;
+    }
+
+    answered(player) {
+        let playerId = 0;
+        if (player != this.players[0]) playerId = 1;
+
+        
+    }
+    
+}
+
+      
+
+let Imposter = { // object hendles mysql calls
+    data: {},
+    each: function(callback){
+        for(let obj of this.data){
+            callback(obj);
+        }
+    },
+    init: function(data) {
+        this.data = data;
+        return this;
+    }
+};
 
 app.use(express.static(path.join(__dirname)));
 
@@ -31,14 +187,14 @@ server.listen(4000);
 
 io = socketIO(server);
 
-let con = mysql.createConnection({
+let con = new mysql({
     host: "127.0.0.1",
     user: "root",
     password: "",
     database: "kings_platform"
 });
 
-con.connect();
+//con.connect();
 const subjCount = 4;
 
 function sqlQueryForSubs(subjs) {
@@ -56,14 +212,18 @@ function sqlQueryForSubs(subjs) {
 }
 
 
-function getQuestions(subjs, clas, count,callBack) {
+function getQuestions(subjs, clas, count) {
     let query = "SELECT id, statement, choices FROM questions WHERE " +  sqlQueryForSubs(subjs) + " AND class = " + clas + " ORDER BY RAND() LIMIT " + count;
-    con.query(query, function (err, result, fields) {
-        if (err) 
-            callBack(err,null);
-        else
-            callBack(null,result);    
-    });  
+    return con.query(query);/* 
+        if (err) {    
+            console.log(err);
+           return err;
+        }
+        else{
+            console.log(result);
+            return result;
+        }
+    }); */
 
     //     function(err,data){
     //         if (err) {
@@ -85,12 +245,7 @@ function mapContains(dct, obj) {
 }
 
 function getUserBySid(sid) {
-    for (let user in onlineUsers) {
-        console.log(user);
-        console.log(onlineUsers[user]);
-        if (onlineUsers[user].indexOf(sid) != -1) return user;
-    }
-    
+    return onlineSockets[sid];
     /* for(let i = 0; i < onlineUsers.length; i++){
         if(onlineUsers[i].sid == sid) {
             return onlineUsers[i];
@@ -99,61 +254,40 @@ function getUserBySid(sid) {
     return null; */
 }
 
-const queryCountInQuiz = 6;
-function getQuiz(gameId, player1, player2) {
-    var questions = getQuestions(1, 4, queryCountInQuiz,function(err,data){
-        if (err) {
-            // error handling code goes here
-            console.log("ERROR : ",err);            
-        } else {            
-            // code to execute on data retrieval
-            console.log("result from db is : ",data);
-            gameInfo[gameId] = { players : [player1, player2], questions: data};  
-            console.log("\n\n kaia2 \n\n");
-            console.log(gameInfo[gameId]);
-  
-            playerGameStatus[player1] = gameId; playerGameStatus[player2] = gameId; 
-        }    
+function getClonedQuestion(gameId, questionIndex) {
+    let quest = gameInfo[gameId].questions[questionIndex];
+    // TODO: clone quest
+    console.log("\n\n\n -------------\n\n\n");
+    console.log(quest);
+    console.log("\n\n\n -------------\n\n\n");
 
-});
-    console.log(questions);
-    
-}
-
-
-app.post('/checkAnswer',function(req,res){
-    console.log("\n\ndelia delia\n\n\n");
-    //console.log(req);
-    
-    var question = req.body.question;
-    var answer = req.body.answer;
-
-    console.log(question);
-    var data = {
-        "Data" :""
+    let clonedQuest = {
+        statement : quest.statement,
+        choices : quest.choices,
+        id: quest.id
     }
-    console.log("SELECT * FROM questions WHERE statement = " + question);
-    con.query("SELECT * FROM questions WHERE statement = " + question, function (err, result, fields) {
-        if (err) throw err;
-        if (result.length != 0) {
-            console.log("here I am \n\n");
-            console.log(result);
-        }
-        return result;
-      });
-});
+
+    return clonedQuest;
+}
+const queryCountInQuiz = 6;
 
 io.on('connection', (socket) => {
     socket.on('newUser', (user) => {
         console.log("newUser");
+        
         console.log(socket.id);
-        user.sid = socket.id;
-        if (mapContains(onlineUsers, user.userName))
-            onlineUsers[user.userName].push(user.sid);
-        else {
-            onlineUsers[user.userName] = []
-            onlineUsers[user.userName].push(user.sid);
+        let curUser = onlineUsers[user.userName];
+        if (curUser === undefined) {
+            onlineUsers[user.userName] = new User(user.userName);
         }
+        console.log(curUser);         
+        onlineUsers[user.userName].addSocket(socket.id);
+        user.sid = socket.id;
+        //var curGame = new Game(1, 1, 1);
+       
+        //curGame.setQuestions(1, 4);
+        console.log("sd\n\n");
+        onlineSockets[socket.id] = user.userName;
 
         socket.broadcast.emit('getOnlineUsers', {
             onlineUsers
@@ -181,7 +315,7 @@ io.on('connection', (socket) => {
 
         console.log(onlineUsers);
 
-        for (var sid of onlineUsers[reqUser]) {
+        for (var sid of onlineUsers[reqUser].onlineSockets) {
             console.log(sid);
             if (io.sockets.connected[sid]) {
                 io.sockets.connected[sid].emit('requests', {
@@ -190,7 +324,7 @@ io.on('connection', (socket) => {
             }
         }
         
-        for (var sid of onlineUsers[sendUser]) {
+        for (var sid of onlineUsers[sendUser].onlineSockets) {
             console.log(sid);
             if (io.sockets.connected[sid]) {
                 io.sockets.connected[sid].emit('sends', {
@@ -228,6 +362,22 @@ io.on('connection', (socket) => {
             }
         }
     });
+    
+
+    socket.on('checkAnswer', (data) => {
+        let curGame = gameInfo[onlineUsers[getUserBySid(socket.id)].gameStatus];
+        if (curGame === undefined) { console.log("this socket currently doesn't plays"); return; }
+        let quest = curGame.questions[curGame.quizQuestionIndex];
+        Game
+        /* console.log(quest.answer);
+        console.log(data.answ) */
+        if (quest.answer == data.answer)
+            console.log("ყოჩაღ ძმაო");
+        else {
+            console.log("ჰა! რას აკეთებ");
+        }
+        
+    });
 
     socket.on('accept', (data) => {
         console.log("accept");
@@ -237,23 +387,32 @@ io.on('connection', (socket) => {
         let player2 = getUserBySid(socket.id);
         players.push([player1, player2]);
         console.log(players);
-        
-        getQuiz(players.length, player1, player2);
+        let newGame = new Game(player1, player2, players.length);
+        newGame.setQuestions(1, 4);
+        gameInfo[players.length] = newGame;
+           
         console.log("\n\n kaia \n\n");
-        console.log(gameInfo[players.length].questions);
+        console.log(newGame.questions);
 
-        for (var playerSid1 of onlineUsers[player1]) {
+        onlineUsers[player1].gameStatus = players.length; 
+        onlineUsers[player2].gameStatus = players.length;
+
+        for (var playerSid1 of onlineUsers[player1].onlineSockets) {
+            let clondeQuestion = getClonedQuestion(players.length, 0);
             io.sockets.connected[playerSid1].emit(
                 'accepted', {
-                    oponent : player2
+                    oponent : player2,
+                    questions : clondeQuestion
                 }
             )
         }
 
-        for (var playerSid2 of onlineUsers[player2]) {
+        for (var playerSid2 of onlineUsers[player2].onlineSockets) {
+            let clondeQuestion = getClonedQuestion(players.length, 0);
             io.sockets.connected[playerSid2].emit(
                 'accepted', {
-                    oponent : player1
+                    oponent : player1,
+                    questions : clondeQuestion
                 }
             )
         }
@@ -264,6 +423,8 @@ io.on('connection', (socket) => {
             })
         } */
     });
+        
+        
     
 
     socket.on('disconnect', () => {
