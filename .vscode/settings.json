@@ -1,0 +1,16 @@
+{
+    "zenMode.hideTabs": false,
+    "zenMode.hideStatusBar": false,
+    "editor.tokenColorCustomizations": {
+        "[United Ubuntu]": {
+            "variables": "#0450f5"
+        }
+    },
+    "workbench.colorCustomizations": {
+        "[United Ubuntu]": {
+            "editorCursor.background": "#a6e202",
+            "editorCursor.foreground":  "#a6e202"
+        }
+    }
+    
+}
