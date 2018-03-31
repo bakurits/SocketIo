@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="943 453 44 70.5">
+  <defs>
+    <style>
+      .cls-1, .cls-7 {
+        fill: none;
+      }
+
+      .cls-1 {
+        stroke: #00edff;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+
+      .cls-3 {
+        fill: #baeafc;
+      }
+
+      .cls-3, .cls-4 {
+        stroke: #707070;
+      }
+
+      .cls-4 {
+        fill: #60d4ff;
+      }
+
+      .cls-5 {
+        fill: #492d81;
+        font-size: 29px;
+        font-family: SegoeUI, Segoe UI;
+      }
+
+      .cls-6 {
+        stroke: none;
+      }
+    </style>
+  </defs>
+  <g id="Group_8" data-name="Group 8" transform="translate(-67 -1)">
+    <ellipse id="Ellipse_25" data-name="Ellipse 25" class="cls-1" cx="19" cy="9" rx="19" ry="9" transform="translate(1013 506)"/>
+    <ellipse id="Ellipse_26" data-name="Ellipse 26" class="cls-2" cx="12" cy="5" rx="12" ry="5" transform="translate(1020 510)"/>
+    <g id="Group_5" data-name="Group 5" transform="translate(291 169)">
+      <path id="Path_1" data-name="Path 1" class="cls-3" d="M2309.012,486.186l18.821,29.3,19.043-29.3Z" transform="translate(-1587 -170)"/>
+      <g id="Ellipse_19" data-name="Ellipse 19" class="cls-4" transform="translate(719 285)">
+        <circle class="cls-6" cx="22" cy="22" r="22"/>
+        <circle class="cls-7" cx="22" cy="22" r="21.5"/>
+      </g>
+      <circle id="Ellipse_20" data-name="Ellipse 20" class="cls-2" cx="14" cy="14" r="14" transform="translate(727 293)"/>
+      <text id="_" data-name="" class="cls-5" transform="translate(741 318)"><tspan x="-9.36" y="0"></tspan></text>
+    </g>
+  </g>
+</svg>

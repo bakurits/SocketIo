@@ -1,17 +1,21 @@
-let express  = require('express'),
+let express  = require(__dirname+'/node_modules/express'),
     app      = express(),
     path     = require('path'),
     http     = require('http'),
-    socketIO = require('socket.io'),
+    socketIO = require(__dirname + '/node_modules/socket.io'),
     bodyParser = require('body-parser'),
     server, io;
 let mysql = require('sync-mysql');
 let PHPUnserialize = require('php-unserialize');
 
-let onlineUsers      = {}, // kay is username and value User
-    onlineSockets   = {}, // kay is socketId and value is userName
+
+let onlineUsers      = {}, // key is username and value User
+    onlineSockets    = {}, // key is socketId and value is userName
     players          = [], // stores players game status
+    
     requests         = {}, // key is receiver and values array - senders
+    senders            = {}, // key is sender and values array - receivers 
+    
     gameInfo = {}, // key game id and game
     playerGameStatus = {}; // Stores player game status
 
@@ -30,11 +34,17 @@ function shuffleArray(array) {
 const timeForAnswer = 10;  // კითხვაზე პასუხის გაცემის დრო
 
 class User {
-    constructor(userName) {
+    constructor(userName, name) {
+        this._name = name;
         this._userName = userName;
         this._onlineSockets = [];
         this._gameStatus = -2;   // -1 meens dont pleying searching, if its postive 
-                                // than it's game id which player is playing 
+                                 // than it's game id which player is playing 
+        let curData;
+        Imposter.init(getTotalScore(userName)).each(function(data) {
+            curData = data.qzPoints;
+        });
+        this._totalScore = curData;
     };
 
     set userName(userName) {
@@ -59,6 +69,10 @@ class User {
     get userName() {
         return this._userName;
     }
+
+    get name() {
+        return this._name;
+    }
     
     get onlineSockets() {
         return this._onlineSockets;
@@ -68,6 +82,17 @@ class User {
         return this._gameStatus;
     }
 
+    addTotalScore(amount) {
+        this._totalScore += amount;
+    }
+    
+    dispose() {
+        delete this._name;
+        delete this._userName;
+        delete this._onlineSockets;
+        delete this._gameStatus;   // -1 meens dont pleying searching, if its postive 
+        delete this._totalScore;
+    }
 }
 
 function jsonToArray(parsed){
@@ -82,8 +107,11 @@ function jsonToArray(parsed){
     return arr;
 }
 
+const prizePoint = 20; // მოგების ქულა
+
 class Game {
     constructor(player1, player2, gameId) {
+        var parent = this;
         this._players = [player1, player2];
         this._gameId = gameId;
         this._quizQuestionIndex = 0;
@@ -99,8 +127,8 @@ class Game {
                 this.interval = setInterval(function () {
                     self.nowSeconds -= 1;
                     if (self.nowSeconds == 0) {
-                        this.answered(this.players[0], 0);
-                        this.answered(this.players[1], 0);
+                        parent.answered(parent._players[0], 0);
+                        parent.answered(parent._players[1], 0);
                     }
                     //if(self.nowSeconds<0) {if(self.nowSeconds+self.dntm*15*60<0) self.dntm+=1; }
                 }, 1000);
@@ -176,15 +204,16 @@ class Game {
         if (this._curQuestionStatus[playerId] != 0) return; 
         this._scores[playerId] += (this.Clockk.nowSeconds * 2) * succ;
         this._curQuestionStatus[playerId] = 1;
-        
-        onlineUsers[players[playerId]].forEach(element => {
+        console.log(onlineUsers[this._players[playerId]].onlineSockets);
+        for (let element of onlineUsers[this._players[playerId]].onlineSockets){
+            console.log(element);
             io.sockets.connected[element].emit(
                 'answered', {
                     succ : succ,
                     newScore : this._scores[playerId]
                 }
             )
-        });
+        }
 
         if (this._curQuestionStatus[opponentId] == 1) {
             this._curQuestionStatus[0] = this._curQuestionStatus[1] = 0;
@@ -192,66 +221,79 @@ class Game {
             this.Clockk.reset();
             if (this._quizQuestionIndex >= queryCountInQuiz) {
                 // მორჩა თამაში
-                onlineUsers[players[playerId]].forEach(element => {
+                console.log("მორჩა თამაში");
+                let score1 = 0, score2 = 0;
+                if (this._scores[playerId] > this._scores[opponentId]) {
+                    addPrizePoints(this._players[playerId], prizePoint);
+                    onlineUsers[this._players[playerId]].addTotalScore(prizePoint);
+                    score1 += prizePoint;
+                }
+                if (this._scores[playerId] < this._scores[opponentId]) {
+                    addPrizePoints(this._players[opponentId], prizePoint);
+                    onlineUsers[this._players[opponentId]].addTotalScore(prizePoint);
+                    score2 += prizePoint;
+                }
+                if (this._scores[player] == this._scores[opponentId]) {
+                    addPrizePoints(this._players[0], prizePoint/2);
+                    addPrizePoints(this._players[1], prizePoint/2);
+                    onlineUsers[this._players[opponentId]].addTotalScore(prizePoint);
+                    onlineUsers[this._players[playerId]].addTotalScore(prizePoint);
+                    score1 += prizePoint / 2;
+                    score2 += prizePoint / 2;
+                }
+
+                for (let element of onlineUsers[this._players[playerId]].onlineSockets) {
                     io.sockets.connected[element].emit(
                         'gameFinished', {
                             oponent : this._scores[opponentId],
-                            me : this._scores[playerId]
+                            me : this._scores[playerId], 
+                            addedPoint : score1
                         }
                     )
-                });
+                };
 
-                onlineUsers[players[opponentId]].forEach(element => {
+                for (let element of onlineUsers[this._players[opponentId]].onlineSockets) {
                     io.sockets.connected[element].emit(
                         'gameFinished', {
                             oponent : this._scores[playerId],
-                            me : this._scores[opponentId]
+                            me : this._scores[opponentId],
+                            addedPoint : score2
                         }
                     )
-                });
+                };
+                
+                
             } else {
+                
                 // ახალი კითხვა
+                console.log("ახალი კითხვა");
                 let quest = this._questions[this._quizQuestionIndex];
                 let clonedQuest = {
                     statement : quest.statement,
                     choices : quest.choices,
                     id: quest.id
                 }
-                onlineUsers[players[playerId]].forEach(element => {
+                for (let element of onlineUsers[this._players[playerId]].onlineSockets) {
                     io.sockets.connected[element].emit(
                         'newQuestion', {
-                            question : clondeQuestion
+                            question : clonedQuest
                         }
                     )
-                });
+                };
 
-                onlineUsers[players[opponentId]].forEach(element => {
+                for (let element of onlineUsers[this._players[opponentId]].onlineSockets) {
                     io.sockets.connected[element].emit(
                         'newQuestion', {
-                            question : clondeQuestion
+                            question : clonedQuest
                         }
                     )
-                });
+                };
             }
         } else {
             // ერთმა უპასუხა
-            onlineUsers[players[playerId]].forEach(element => {
-                io.sockets.connected[element].emit(
-                    'newQuestion', {
-                        question : clondeQuestion
-                    }
-                )
-            });
-
-            onlineUsers[players[opponentId]].forEach(element => {
-                io.sockets.connected[element].emit(
-                    'newQuestion', {
-                        question : clondeQuestion
-                    }
-                )
-            });
+            console.log("ერთმა უპასუხა");
+            
         }
-
     }
     
 }
@@ -276,9 +318,9 @@ app.use(express.static(path.join(__dirname)));
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/index.html');
-});
+/* app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.php');
+}); */
 
 
 
@@ -312,11 +354,21 @@ function sqlQueryForSubs(subjs) {
     return ("(" + ans + ")");
 }
 
+function addPrizePoints(player, point) {
+    let query = "UPDATE users set qzPoints = qzPints+" + point + " where username = " + player;
+    console.log(query)
+    return con.query(query);
+}
+
+function getTotalScore(userName) {
+    let query = "SELECT qzPoints FROM users WHERE username = " + userName;
+    return con.query(query);
+}
 
 function getQuestions(subjs, clas, count) {
     let query = "SELECT id, statement, choices FROM questions WHERE " +  sqlQueryForSubs(subjs) + " AND class = " + clas + " ORDER BY RAND() LIMIT " + count;
-    return con.query(query);/* 
-        if (err) {    
+    return con.query(query);
+    /*if (err) {    
             console.log(err);
            return err;
         }
@@ -355,13 +407,10 @@ function getUserBySid(sid) {
     return null; */
 }
 
+
 function getClonedQuestion(gameId, questionIndex) {
     let quest = gameInfo[gameId].questions[questionIndex];
-    // TODO: clone quest
-    console.log("\n\n\n -------------\n\n\n");
-    console.log(quest);
-    console.log("\n\n\n -------------\n\n\n");
-
+    
     let clonedQuest = {
         statement : quest.statement,
         choices : quest.choices,
@@ -377,57 +426,68 @@ io.on('connection', (socket) => {
     socket.on('newUser', (user) => {
         console.log("newUser");
         
-        console.log(socket.id);
+        
         let curUser = onlineUsers[user.userName];
         if (curUser === undefined) {
-            onlineUsers[user.userName] = new User(user.userName);
+            onlineUsers[user.userName] = new User(user.userName, user.name);
         }
-        console.log(curUser);         
+       
         onlineUsers[user.userName].addSocket(socket.id);
         user.sid = socket.id;
         //var curGame = new Game(1, 1, 1);
        
         //curGame.setQuestions(1, 4);
-        console.log("sd\n\n");
+        
         onlineSockets[socket.id] = user.userName;
-
+        console.log(onlineUsers[user.userName]);
         socket.broadcast.emit('getOnlineUsers', {
             onlineUsers
         });
+        console.log("asd");
         socket.emit('getOnlineUsers', {
             onlineUsers
         });
     });
 
     socket.on('sendRequest', (data) => {
+        User
         console.log("sendRequest");
-        let reqUser = data.reqUser;
+        let reqUser = data.userName;
         let sendUser = getUserBySid(socket.id);
-        /* for(let user in data.onlineUsers){
+        /* for(let user of data.onlineUsers){
             if(userName != user)
                 html += `<li data-sid="${user}" class="onlineUser onlineUser${user}">${user} 
                 <div class="navigation"><span class="sendReq">Send Request</span></div> 
                 </li>`;
         } */
-        if(!requests[reqUser]) {
+        if(requests[reqUser] === undefined) {
             requests[reqUser] = [sendUser];
         }else{
             requests[reqUser].push(sendUser);
         }
 
-        console.log(onlineUsers);
+
+        if (senders[sendUser] === undefined) {
+            senders[sendUser] = [reqUser];
+        } else {
+            senders[sendUser].push(reqUser);
+        }
+
+
 
         for (var sid of onlineUsers[reqUser].onlineSockets) {
-            console.log(sid);
+        
             if (io.sockets.connected[sid]) {
                 io.sockets.connected[sid].emit('requests', {
-                    sendUser
+                    sendUserName : onlineUsers[sendUser].name,
+                    sendUserUserName : onlineUsers[sendUser].userName,
+                    sendUserPoint: onlineUsers[sendUser]._totalScore
                 })
             }
         }
         
         for (var sid of onlineUsers[sendUser].onlineSockets) {
-            console.log(sid);
+           
             if (io.sockets.connected[sid]) {
                 io.sockets.connected[sid].emit('sends', {
                     reqUser
@@ -470,33 +530,50 @@ io.on('connection', (socket) => {
         let usr = getUserBySid(socket.id);
         let curGame = gameInfo[onlineUsers[usr].gameStatus];
         if (curGame === undefined) { console.log("this socket currently doesn't plays"); return; }
-        let quest = curGame.questions[curGame.quizQuestionIndex];
-        Game
+        // let quest = curGame/*  */.questions[curGame.quizQuestionIndex];
+        // 
         /* console.log(quest.answer);
         console.log(data.answ) */
-        if (quest.answer == data.answer)
+        let succ = 0;
+        if (quest.answer == data.answer) {
             curGame.answered(usr, 1);
+            succ = 1;
+        }
         else {
             curGame.answered(usr, 0);
         }
+
+        for (var sid of onlineUsers[usr].onlineSockets) {
+            if (io.sockets.connected[sid]) {
+                io.sockets.connected[sid].emit('answerChecked', {
+                    succ
+                })
+            }
+        }
+            
         
     });
 
     socket.on('accept', (data) => {
         console.log("accept");
-        console.log(onlineUsers);
-        console.log(data.sid, socket.id);
-        let player1 = data.sid;
+        let player1 = data.userName;
         let player2 = getUserBySid(socket.id);
+        console.log(player1);
+        console.log(player2);
+        
+        let indInArray = senders[player1].indexOf(player2);
+        if (indInArray == -1) return;
+
+        senders[player1].splice(indInArray, 1);
+        requests[player2].splice(requests[player2].indexOf(player1), 1);
+
         players.push([player1, player2]);
-        console.log(players);
+        
         let newGame = new Game(player1, player2, players.length);
         newGame.setQuestions(1, 4);
         gameInfo[players.length] = newGame;
-           
-        console.log("\n\n kaia \n\n");
-        console.log(newGame.questions);
-
+        newGame.Clockk.start();
+      
         onlineUsers[player1].gameStatus = players.length; 
         onlineUsers[player2].gameStatus = players.length;
 
@@ -505,7 +582,7 @@ io.on('connection', (socket) => {
             io.sockets.connected[playerSid1].emit(
                 'accepted', {
                     oponent : player2,
-                    questions : clondeQuestion
+                    question : clondeQuestion
                 }
             )
         }
@@ -515,7 +592,7 @@ io.on('connection', (socket) => {
             io.sockets.connected[playerSid2].emit(
                 'accepted', {
                     oponent : player1,
-                    questions : clondeQuestion
+                    question : clondeQuestion
                 }
             )
         }
@@ -527,8 +604,6 @@ io.on('connection', (socket) => {
         } */
     });
         
-        
-    
 
     socket.on('disconnect', () => {
         console.log("disconect");
@@ -536,10 +611,12 @@ io.on('connection', (socket) => {
         let user = getUserBySid(socket.id);
         if (user === undefined) return;
         if (onlineUsers[user] === undefined) return;
-        let indx = onlineUsers[user].indexOf(socket.id);
-        onlineUsers[user].splice(indx, 1);
-        if (onlineUsers[user].length == 0) delete onlineUsers[user];
+
+        onlineUsers[user].removeSocket(socket.id);
+        if (onlineUsers[user].onlineSockets == 0) onlineUsers[user].dispose();
+        onlineUsers[user] = undefined;
         delete requests[user];
+        requests[user] = undefined;
         /* for( let i = 0; i < onlineUsers.length; i++) {
             if(onlineUsers[i].sid == socket.id){
                 onlineUsers.splice(i,1);

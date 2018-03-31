@@ -6,7 +6,7 @@ var Clockk = {
     logicHint:0,
 
     start: function () {
-        var self = this;
+        let self = this;
         if(this.ispl == 0) $('.WmzmIsr').addClass('WmzmIsrChrtl');
         
 
@@ -40,11 +40,11 @@ var Clockk = {
 };
 
 var curQuestion = "";
-
+var answerId = -1;
 function answered(answer1) {
-    console.log(answer1);
+    if (answerId != -1) return;
+    answerId = answer1;
     let answer = $("#answer" + answer1).text();
-    console.log(answer);
     io.emit('checkAnswer', {
         answer
     })
@@ -67,41 +67,74 @@ function answered(answer1) {
 
 var questions = [];
 
+function sendRequ(userName) {
+    io.emit('sendRequest', {
+        userName
+    })
+}
+
+function accepted(userName) {
+    io.emit('accept', {
+        userName
+    })
+
+}
+
+function rejected(userName) {
+    console.log(userName);
+}
+
+
 window.onload = function() {
     let userForm        = document.getElementById('userForm'),
         onlineUsersList = document.getElementById('onlineUsersList'),
-        userNameInput   = document.getElementById('username')
-        io              = io();
+        userNameInput   = document.getElementById('username');
+        requestsList    = document.getElementsByClassName('requestListDiv');
+    io = io('http://localhost:4000'); // razec server.js dastarte
+    
+    io.emit('newUser', {
+          userName : playerUserName,
+          name : playerName
+    })
 
     let userName = '';
 
     io.on('getOnlineUsers', (data) => {
         onlineUsersList.innerHTML = '';
         let html = '';
+        console.log("asdasdasddfg");
         // console.log(data);
         for(let key in data.onlineUsers){
             let user = data.onlineUsers[key];
-            if(userName != user._userName){
-               // console.log(user);
-                html += `<li data-sid="${user._userName}" class="onlineUser onlineUser${user._userName}">${user._userName} 
-                <div class="navigation"><span class="sendReq">Send Request</span></div> 
-                </li>`;
+            if(playerUserName != user._userName){
+                console.log(user);
+                html += `<div class="col p-1 align-self-center"> <div class="gamer text-center mx-auto "> <div class="avatar d-flex justify-content-center align-items-center"> <div> <img src="images/img_avatar.png"> </div> </div> <div> N: <span>4</span></div> <div class="name"> ${user._name} </div> <div class="point"> <span>${user._totalScore}</span> ქულა </div> <div class="bolt" onclick="sendRequ('${user._userName}')"> <i class="fas fa-bolt"></i> </div> </div> </div>`;
             }
         }
 
         onlineUsersList.innerHTML = html;
     });
     io.on('requests', (data) => {
-        console.log(data.sendUser);
-        $('.onlineUser'+data.sendUser).find('.navigation').html(`<span class="navBtn accept">Accept</span> <span class="navBtn cancel">Cancel</span>`);
+        console.log(requestsList);
+        if (requestsList.length == 0) {
+            let dv;
+            
+            dv = `<div id = "requestListDiv" class="pop"><div class="request"> <div class="searched_gamers d-flex align-items-center justify-content-center"><div class="avatar "><img width="40px;" src="images/img_avatar.png"></div><div class="gamer_info d-flex align-items-center"><span class="number"> N:<span>6</span> &nbsp; </span> ${data.sendUserName}&nbsp; <sapn class="pint"> ${data.sendUserPoint} </sapn>&nbsp;ქულა </div> </div><div class="text-center"> <button class="btn btn_confirm" onclick = "accepted('${data.sendUserUserName}')">დათანხმება</button> <button class="btn btn_cancel" onclick = "rejected('${data.sendUserUserName}')"> უარყოფა</button></div> </div> </div>`;
+            $('#content').append(dv);
+            requestsList = document.getElementById('requestListDiv');
+        } else {
+            dv = `<div class="request"> <div class="searched_gamers d-flex align-items-center justify-content-center"><div class="avatar "><img width="40px;" src="images/img_avatar.png"></div><div class="gamer_info d-flex align-items-center"><span class="number"> N:<span>6</span> &nbsp; </span> ${data.sendUserName}&nbsp; <sapn class="pint"> ${data.sendUserPoint} </sapn>&nbsp;ქულა </div> </div><div class="text-center"> <button class="btn btn_confirm" onclick = "accepted('${data.sendUserUserName}')">დათანხმება</button> <button class="btn btn_cancel" onclick = "rejected('${data.sendUserUserName}')"> უარყოფა</button></div> </div>`;
+            requestsList.innerHTML = requestsList.innerHTML + dv;
+        }
+        
     });
 
     io.on('sends', (data) => {
-        console.log(data.sendUser);
+        
         $('.onlineUser'+data.reqUser).find('.navigation').removeClass('sendReq').addClass('sent').html('Sent');
     });
 
-    userForm.addEventListener('submit', (e) => {
+    /* userForm.addEventListener('submit', (e) => {
         e.preventDefault();
         userName = userNameInput.value;
 
@@ -119,9 +152,9 @@ window.onload = function() {
         }
 
         alert("Username field is empty");
-    });
+    }); */
 
-    $(document).on('click', '.sendReq', (e) => {
+   /*  $(document).on('click', '.sendReq', (e) => {
         e.preventDefault();
         let parent = e.currentTarget.parentNode.parentNode;
         let reqUser = parent.getAttribute('data-sid');
@@ -131,9 +164,9 @@ window.onload = function() {
         io.emit('sendRequest', {
             reqUser
         });
-    });
+    }); */
 
-    $(document).on('click', '.cancel' , (e) => {
+    /* $(document).on('click', '.cancel' , (e) => {
         e.preventDefault();
         let parent = e.currentTarget.parentNode.parentNode;
         let sid = parent.getAttribute('data-sid');
@@ -143,14 +176,13 @@ window.onload = function() {
         io.emit('cancel', {
             sid
         });
-    });
+    }); */
 
     io.on('canceled', (data) => {
         $('.onlineUser'+data.sid).find('.navigation').html(`<span class="canceled">Canceled</span>`);
     });
 
-
-    $(document).on('click','.accept', (e) => {
+    /* $(document).on('click','.accept', (e) => {
         e.preventDefault();
         let parent = e.currentTarget.parentNode.parentNode;
         let sid = parent.getAttribute('data-sid');
@@ -159,37 +191,133 @@ window.onload = function() {
             sid
         })
 
-    });
+    }); */
 
     io.on('accepted', (data) => {
                
         // for(let player of data.players) {
         
-        this.console.log(data);
-        curQuestion = data;
         
-        Clockk.start();
-        let html = '<div style="width: 100%; overflow: hidden;">';
+        curQuestion = data.question;
+        
+        //Clockk.start();
+        this.console.log(curQuestion);
+        /* let html = `<div class="question_page"> <div class="VStiemer "> <div style=" " id="timer_line" class="Timer_line"> </div> <div class="outVS d-flex align-items-center justify-content-between"> <div class="VS2 d-flex align-items-center "> <div class="outline d-flex align-items-center justify-content-center"> <div class="avatar"> <div class="star"> <div class="point">`;
+        html += 900;
+        html += `</div> <i class="fas fa-star"></i> </div> <img src="images/img_avatar.png"> </div> </div> <div class="name">`;
+        html += ` თაკო `;
+        html += `<div class="point2">`;
+        html += `20`;
+        html += `</div> </div> </div> <div class="timer"> <i class="fas fa-stopwatch"></i> <span id="game_timer_time" class="timer_time">10</span> </div> <div class="outVS d-flex align-items-center"> <div class="VS2 d-flex align-items-center "> <div class="name">`;
+        html += `თაკო`;
+        html += `<div class="point2 text-right">`;
+        html += `20`;
+        html += `</div> </div> <div class="outline d-flex align-items-center justify-content-center"> <div class="avatar"> <div class="star"> <div class="point">`;
+        html += `900`;
+        html += `</div> <i class="fas fa-star"></i> </div> <img src="images/img_avatar.png"> </div> </div> </div> </div> </div> </div> <div class="question_block"> <div class="question">`;
+        html += curQuestion.statement;
+        html += `</div> <div class="container"> <div class="row d-flex justify-content-between"> <a href=""> <div class="answer corect">`;
+        html += curQuestion.choices[0];
+        html += `</div> </a> <a href=""> <div class="answer other ">`;
+        html += curQuestion.choices[1];
+        html += `</div> </a> <a href="#"> <div class="answer wrong">`;
+        html += curQuestion.choices[2];
+        html += `</div> </a> <a href="#"> <div class="answer">`;
+        html += curQuestion.choices[3];
+        html += ` </div> </a> </div> </div> </div> </div>`; */
+        let q_page = document.getElementById('requestListDiv');
+       // this.console.log(q_page);
+        //this.console.log(q_page.style);
+        q_page.remove();
+        //var div = document.createElement(html);
+       // $('#content').append(html); 
+        /* let html = '<div style="width: 100%; overflow: hidden;">';
         html += `<div style="width: 250px; float: left;"> <div id = "playerName"> ${userName} </div> <div id = "playerScore"><span>0</span></div> </div>`
         html += `<div style="margin-left: 620px;"> <div id = "playerName"> ${data.oponent} </div> <div id = "playerScore"><span>0</span></div> </div>`;
-        html += '</div>';
+        html += '</div>'; */
         /* html += `<div class="Qstat"> ${enc.decode(questions[0].statement)}</div>`;
         // html += '<input value="'+'რამ სიმაღლეა ევერესტი ?'+'" disabled type="text" class="Qstat">';
         html += `<div style="width: 100%; overflow: hidden;"> <div style="width: 250px; float: left;"> <div id = "answer1" class="D1dwk D1dwkCh" onclick="answered(1)">A: ფგდლფგკ ლკფდკ ლკდფგლ დფგ</div> </div> <div style="width: 250px; margin-left: 620px;"> <div id = "answer2" class="D1dwk D1dwkCh" onclick="answered(2)">B: ფგდლფგკ ლკფდკ ლკდფგლ დფგ</div> </div> </div> <div style="width: 100%; overflow: hidden;"> <div id = "answer3" class="D1dwk D1dwkCh" style="width: 250px; float: left;" onclick="answered(3)"> ფგდლფგკ ლკფდკ ლკდფგლ დფგ ასდსდფ სდ ,სდფ სმ სდ,ფმ ,სმფ, სმ,ფს,დფ, </div> <div style="width: 250px; margin-left: 620px;"> <div id = "answer4" class="D1dwk D1dwkCh" onclick="answered(4)">D: ფგდლფგკ ლკფდკ ლკდფგლ დფგ</div> </div> </div>`; */
-        $('#userFormWrapper').append(html); 
+        //$('#userFormWrapper').append(html); 
         drawNewQuery();
-        $('.onlineUser'+data.oponent).find('.navigation').html(`<span class="navBtn ready">Ready</span>`)
+        //$('.onlineUser'+data.oponent).find('.navigation').html(`<span class="navBtn ready">Ready</span>`)
     });
+
+    io.on('answered', (data) => {
+        this.console.log("answered", data.succ);
+    });
+
+    io.on('answerChecked', (data) => {
+        
+    });
+
+    io.on('gameFinished', (data) => {
+        this.console.log("gameFinished", data);
+    });
+
+    io.on('newQuestion', (data) => {
+        curQuestion = data.question;
+        drawNewQuery();
+        this.console.log("newQuestion", data);
+    });
+
 }
 
 function drawNewQuery() {
+    
+    timerChanger();
+    return;
+    let html = `<div class="question_page"> <div class="VStiemer "> <div style=" " id="timer_line" class="Timer_line"> </div> <div class="outVS d-flex align-items-center justify-content-between"> <div class="VS2 d-flex align-items-center "> <div class="outline d-flex align-items-center justify-content-center"> <div class="avatar"> <div class="star"> <div class="point">`;
+    html += 900;
+    html += `</div> <i class="fas fa-star"></i> </div> <img src="images/img_avatar.png"> </div> </div> <div class="name">`;
+    html += ` თაკო `;
+    html += `<div class="point2">`;
+    html += `20`;
+    html += `</div> </div> </div> <div class="timer"> <i class="fas fa-stopwatch"></i> <span id="game_timer_time" class="timer_time">10</span> </div> <div class="outVS d-flex align-items-center"> <div class="VS2 d-flex align-items-center "> <div class="name">`;
+    html += `თაკო`;
+    html += `<div class="point2 text-right">`;
+    html += `20`;
+    html += `</div> </div> <div class="outline d-flex align-items-center justify-content-center"> <div class="avatar"> <div class="star"> <div class="point">`;
+    html += `900`;
+    html += `</div> <i class="fas fa-star"></i> </div> <img src="images/img_avatar.png"> </div> </div> </div> </div> </div> </div> <div class="question_block"> <div class="question">`;
+    html += curQuestion.statement;
+    html += `</div> <div class="container"> <div class="row d-flex justify-content-between"> <a href=""> <div class="answer">`;
+    html += curQuestion.choices[0];
+    html += `</div> </a> <a href=""> <div class="answer">`;
+    html += curQuestion.choices[1];
+    html += `</div> </a> <a href="#"> <div class="answer">`;
+    html += curQuestion.choices[2];
+    html += `</div> </a> <a href="#"> <div class="answer">`;
+    html += curQuestion.choices[3];
+    html += ` </div> </a> </div> </div> </div> </div>`;
     //console.log(curQuestion);
-    let html = "";
-    html += `<div class="Qstat"> ${curQuestion.questions.statement}</div>`;
-        // html += '<input value="'+'რამ სიმაღლეა ევერესტი ?'+'" disabled type="text" class="Qstat">';
-    html += `<div style="width: 100%; overflow: hidden;"> <div id = "answer1" style="width: 600px; float: left;"> <div class="D1dwk D1dwkCh" onclick="answered(1)">${curQuestion.questions.choices[0]}</div> </div> <div style="width: 600px; margin-left: 620px;"> <div id = "answer2" class="D1dwk D1dwkCh" onclick="answered(2)">${curQuestion.questions.choices[1]}</div> </div> </div> <div style="width: 100%; overflow: hidden;"> <div class="D1dwk D1dwkCh" id = "answer3" style="width: 600px; float: left;" onclick="answered(3)"> ${curQuestion.questions.choices[2]} </div> <div style="width: 600px; margin-left: 620px;"> <div id = "answer4" class="D1dwk D1dwkCh" onclick="answered(4)">${curQuestion.questions.choices[3]}</div> </div> </div>`
+    $('#content').append(html); 
+   
     $('#userFormWrapper').append(html);
     
+}
+
+function timerChanger(){
+                   
+    $('.start_game').addClass('hidden');
+    $('.question_page').removeClass('hidden');
+
+    let timeleft = 10;
+    let transitonFor=10;
+    let downloadTimer = setInterval(function(){
+        console.log(timeleft);
+        console.log(transitonFor);
+        console.log("\n\n\n -------------\n\n\n");
+        document.getElementById("game_timer_time").innerHTML =timeleft;
+        document.getElementById("timer_line").style.width=0+'%';
+        docxument.getElementById("timer_line").style.transition = transitonFor+'s';
+        document.getElementById("timer_line").style.transitionTimingFunction='linear'
+
+        if(timeleft <= 0){
+            clearInterval(downloadTimer)
+        }
+        timeleft--;
+    },1000);
 }
 
 

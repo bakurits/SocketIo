@@ -2,7 +2,6 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="icon" href="images/.png">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -20,35 +19,11 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-<script type="text/javascript">
-            var aniamtintim;
-            function gogo(){
-               $('.map').addClass('map_animate');
-               $('.map').removeClass('hidden');
-               $('.gmaer1').removeClass('hidden');
-               $('.gmaer2').removeClass('hidden');
-               $('.start_game').addClass('hidden');   
-               $('.search_gamer_block').addClass('hidden');
-               $('.blar').addClass('hidden');
 
-
-                aniamtintim =  setTimeout(function(){
-                $('.map').removeClass('map_animate');
-               $('.gmaer1').addClass('hidden');
-               $('.gmaer2').addClass('hidden');
-               $('.map').addClass('hidden');
-               $('.start_game').removeClass('hidden');
-
-             
-                  
-                 }, 6800);
-            }
-</script>
 
 
         <div class="wrapper">
             <!-- Sidebar Holder -->
-
           
                <aside id="sidebar" class="game_left_side d-inline-block">
 	   	<div class="person_info d-flex align-items-center justify-content-center">
@@ -63,11 +38,11 @@
 		      	   <span>800</span> ქულა
 		      	 </div>
 		      	 <div class="blance">
-		      	   ბალანსი<span>40:00</span>₾
+		      	   ბალანსი<span>40:00</span> ₾
 		      	 </div>
 		      	</div>
 		  </div>
-		  <div class="energi_point  w-50 mt-3 mb-3 mx-auto d-flex ">
+		  <div class="energi_point  w-50 mt-4 mb-4 mx-auto d-flex ">
 		  	  <div class="col d-flex align-items-center justify-content-center">
 		  	  	 <i class="fas fa-star"></i><span>17</span>
 		  	  </div>
@@ -75,7 +50,7 @@
 		  	  	 <i class="fas fa-bolt"></i><span>17</span>
 		  	  </div>
 		  </div>
-		  <div class="chart text-center mb-2">
+		  <div class="chart text-center">
               <span> </span>
 		  	 <img class="mx-3" src="images/chart.svg">
 		  	  <span> </span>
@@ -107,29 +82,25 @@
     	 	</div>
     	 </div>
     	 <div>
-    	<!--  <input class="formClear" value="+ 3 მოსწავლე" type="#" name=""><button><i class="fas fa-search"></i></button> -->
-
-        <button onclick="gogo()" class="alternativ">  + 3 მოსწავლე <i class="fas fa-random"></i> </button>
+    	 <input class="formClear" value="+ 3 მოსწავლე" type="#" name=""><button><i class="fas fa-search"></i></button>
     	</div>
     </div>
-    
-
     <div class="row gameer_reitings">
     	 <div class="col p-1 align-self-center">
     	 	 <div class="gamer text-center mx-auto ">
     	 	 	 <div class="avatar d-flex justify-content-center align-items-center">
     	 	 	 	 <div>
-    	 	 	 	 	  <img src="images/img_avatar.png">
+    	 	 	 	 	
     	 	 	 	 </div>
     	 	 	 </div>
     	 	 	<div> N: <span>4</span></div>
     	 	 	<div class="name"> 
-    	 	 		დურმიშხანიკო
+    	 	 		salome
     	 	 	</div>
     	 	 	<div class="point">
-    	 	 		<span>1000</span> ქულა
+    	 	 		<span>1000</span> qula
     	 	 	</div>
-    	 	 	<div id="next_gamer" class="bolt animate_bolt" onclick="gogo()">
+    	 	 	<div class="bolt">
     	 	 		<i class="fas fa-bolt"></i>
     	 	 	</div>
     	 	 </div>
@@ -138,7 +109,7 @@
     	 	 <div class="gamer mx-auto curent text-center">
     	 	 	 <div class="avatar d-flex justify-content-center align-items-center">
     	 	 	 	 <div>
-    	 	 	 	 	  <img src="images/img_avatar.png">
+    	 	 	 	 	
     	 	 	 	 </div>
     	 	 	 </div>
     	 	 	<div class="number"> N: <span>4</span></div>
@@ -148,26 +119,26 @@
     	 	 	<div class="point">
     	 	 		<span>1000</span> ქულა
     	 	 	</div>
-    	 	 	<!-- <div class="bolt d-flex justify-content-center align-items-center">
+    	 	 	<div class="bolt d-flex justify-content-center align-items-center">
     	 	 		<i class="fas fa-bolt"></i>
-    	 	 	</div> -->
+    	 	 	</div>
     	 	 </div>
-    	 </div>
+    	 </div>s
     	  <div class="col p-1 align-self-center ">
     	 	 <div class="gamer mx-auto  text-center">
     	 	 	 <div class="avatar d-flex justify-content-center align-items-center">
     	 	 	 	 <div>
-    	 	 	 	 	  <img src="images/img_avatar.png">
+    	 	 	 	 	
     	 	 	 	 </div>
     	 	 	 </div>
     	 	 	<div> N: <span>4</span></div>
     	 	 	<div class="name"> 
-    	 	 		სალომე
+    	 	 		salome
     	 	 	</div>
     	 	 	<div class="point">
-    	 	 		<span>1000</span> ქულა
+    	 	 		<span>1000</span> qula
     	 	 	</div>
-    	 	 	<div id="previous_gamer" onclick="gogo()" class="bolt d-flex align-items-center justify-content-center animate_bolt">
+    	 	 	<div class="bolt d-flex align-items-center justify-content-center">
     	 	 		<i class="fas fa-bolt"></i>
     	 	 	</div>
     	 	 </div>
@@ -180,19 +151,9 @@
     	 	</div>
     	 </div>
     	 <div>
-    	 <!-- <input class="formClear" value="+ 3 მოსწავლე" type="#" name=""><button><i class="fas fa-search"></i></button> -->
-      
-      <button onclick="gogo()" class="alternativ">  + 3 მოსწავლე <i class="fas fa-random"></i> </button>
+    	 <input class="formClear" value="+ 3 მოსწავლე" type="#" name=""><button><i class="fas fa-search"></i></button>
     	</div>
     </div>
-
-    <div class="cheleng">
-            <a id="chelengfrend" href="#">გამოიწვიე მეგობარი
-                  <div class="bolt d-flex align-items-center justify-content-center animate_bolt">
-            <i class="fas fa-bolt"></i>
-          </div>
-            </a>
-     </div>
     </div>
     <div id="game_menu1" class="container tab-pane fade"><br>
       <h3>Menu 1</h3>
@@ -214,78 +175,6 @@
             <!-- Page Content Holder -->
             <div id="content">
 
-
-            <div  class="pop">
-  <div class="request">
-   <div class="searched_gamers d-flex align-items-center justify-content-center">
-                                        <div class="avatar ">
-                                           <img width="40px;" src="images/img_avatar.png">
-                                        </div>
-                                        <div class="gamer_info d-flex align-items-center">
-                                           <span class="number"> N:<span>6</span> &nbsp </span> 
-                                           სალომე&nbsp <sapn class='pint'> 1000 </sapn>&nbspქულა
-                                        </div>
-                                        
-
-
-              </div>
-              <div class="text-center">
-                 <button class="btn btn_confirm">დათანხმება</button> <button class="btn btn_cancel"> უარყოფა</button>
-              </div>
-            </div>
-            <div class="request">
-   <div class="searched_gamers d-flex align-items-center justify-content-center">
-                                        <div class="avatar ">
-                                           <img width="40px;" src="images/img_avatar.png">
-                                        </div>
-                                        <div class="gamer_info d-flex align-items-center">
-                                           <span class="number"> N:<span>6</span> &nbsp </span> 
-                                           სალომე&nbsp <sapn class='pint'> 1000 </sapn>&nbspქულა
-                                        </div>
-                                        
-
-
-              </div>
-              <div class="text-center">
-                 <button class="btn btn_confirm">დათანხმება</button> <button class="btn btn_cancel"> უარყოფა</button>
-              </div>
-            </div>
-            <div class="request">
-   <div class="searched_gamers d-flex align-items-center justify-content-center">
-                                        <div class="avatar ">
-                                           <img width="40px;" src="images/img_avatar.png">
-                                        </div>
-                                        <div class="gamer_info d-flex align-items-center">
-                                           <span class="number"> N:<span>6</span> &nbsp </span> 
-                                           სალომე&nbsp <sapn class='pint'> 1000 </sapn>&nbspქულა
-                                        </div>
-                                        
-
-
-              </div>
-              <div class="text-center">
-                 <button class="btn btn_confirm">დათანხმება</button> <button class="btn btn_cancel"> უარყოფა</button>
-              </div>
-            </div>
-            <div class="request">
-   <div class="searched_gamers d-flex align-items-center justify-content-center">
-                                        <div class="avatar ">
-                                           <img width="40px;" src="images/img_avatar.png">
-                                        </div>
-                                        <div class="gamer_info d-flex align-items-center">
-                                           <span class="number"> N:<span>6</span> &nbsp </span> 
-                                           სალომე&nbsp <sapn class='pint'> 1000 </sapn>&nbspქულა
-                                        </div>
-                                        
-
-
-              </div>
-              <div class="text-center">
-                 <button class="btn btn_confirm">დათანხმება</button> <button class="btn btn_cancel"> უარყოფა</button>
-              </div>
-            </div>
-            </div>
-   
                 <div class="">
                     <div class="container-fluid">
 
@@ -301,29 +190,13 @@
                     </div>
                 </div>
 
-                
+             <!--    
               <div class="map">
-                  <img class="map" src="images/map23.png">
-                  <div class="gmaer1 hidden">
-                     <div class="avatar">
-                        <img src="images/img_avatar.png">
-                     </div>
-                     <img src="images/Group8.svg">
-                  </div>
-                  <div class="gmaer2 hidden">
-                     <div class="avatar">
-                        <img src="images/img_avatar.png">
-                     </div>
-                     <img src="images/Group9.svg">
-                    
-                  </div>
-              </div>
-              <div class="blar hidden">
-     
-   </div>
+                  <img src="images/map23.png">
+              </div> -->
               <!-- search gamer  -->
-
-                 <div class="search_gamer_block hidden">
+<!-- 
+                 <div class="search_gamer_block">
                       <div class="players">
                            <div class="left d-inline-block ">
                            <span> <img src="images/img_avatar.png"> </span>
@@ -348,7 +221,7 @@
                                            <span class="number"> N:<span>6</span> </span> 
                                            სალომე <sapn class='pint'> 1000 </sapn> ქულა
                                         </div>
-                                        <a href="" onclick=" gogo()" class="bolt d-flex justify-content-center align-items-center">
+                                        <a href="" class="bolt d-flex justify-content-center align-items-center">
                                               <i class="fas fa-bolt"></i>
                                         </a>
 
@@ -362,7 +235,7 @@
                                            <span class="number"> N:<span>6</span> </span> 
                                            სალომე <sapn class='pint'> 1000 </sapn> ქულა
                                         </div>
-                                        <a href=""  class="bolt d-flex justify-content-center align-items-center">
+                                        <a href="" class="bolt d-flex justify-content-center align-items-center">
 
                                              <i class="fas fa-bolt"></i>
                                         </a>
@@ -399,7 +272,7 @@
                             </div>
 
                        </div> 
-                       </div>
+                       </div> -->
 
                        <!--============== end search gamers=============== -->
 
@@ -413,26 +286,7 @@
 
                        <!-- ====================start game=================== -->
 
-                       <div class="start_game hidden">
-                           <div class="VStiemer ">
-                              <div style=" " id="timer_line " class="Timer_line reqvest_load">
-                                    
-                              </div>
-                              
-                   </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    <!--    <div class="start_game">
                               <div class="gamerVSgamer d-flex align-items-center  justify-content-between ">
                                    <div class="gamerVS  text-center ">
                                      <div class="outline d-flex align-items-center justify-content-center">
@@ -482,19 +336,19 @@
                               </div>
                               <div class="text-center">
 
-                                 <!-- <button  class="start_btn btn">დაწყება</button> -->
-                                 <img src="images/load.gif">
+                                 <button  class="start_btn btn">დაწყება</button>
                                   
                               </div>
-                       </div>
+                       </div> -->
                        <!--================= end start game ===============-->
 
 
- <div class="question_page hidden">
+
+                      <!--  <div class="question_page">
                            
                        
                        <div class="VStiemer ">
-                              <div style=" " id="timer_line" class="Timer_line">
+                              <div class="Timer_line">
                                     
                               </div>
                               <div class="outVS d-flex align-items-center justify-content-between">
@@ -521,7 +375,7 @@
                           
 
                           <div class="timer">
-                              <i class="fas fa-stopwatch"></i> <span id="game_timer_time" class="timer_time">10</span>
+                              <i class="fas fa-stopwatch"></i> <span class="timer_time">20</span>
                           </div>
                           <div class="outVS d-flex align-items-center">
                               <div class="VS2 d-flex align-items-center ">
@@ -582,6 +436,7 @@
                      </div>
 
                    </div>
+ -->
 
 
 
@@ -589,7 +444,7 @@
 
 
 
-                  <!-- <div class="end_game">
+                  <div class="end_game">
                     <div class="win lost  text-center">
                          <span>შენ წააგე</span>  <span> შენ მოიგე</span>
                     </div>
@@ -656,12 +511,12 @@
                    </div>
 
 
-                  </div> -->
+                  </div>
 
        <!-- ================================ -->
 
 
-  <!--  <div class="Previous_questions"> 
+   <!-- <div class="Previous_questions"> 
         <div class="Previous_question_block" >
               <div class="VStiemer ">
                               <div class="Timer_line">
@@ -754,8 +609,6 @@
  -->
 
 
-<!-- ============================================= -->
-
 
 
                  </div>
@@ -768,7 +621,7 @@
         </div>
 
 
-    
+
 
 
         <!-- jQuery CDN -->
@@ -777,56 +630,7 @@
          <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
  -->
          <script type="text/javascript">
-
-
              $(document).ready(function () {
-            // serchi
-            $('#chelengfrend').click(function(){
-
-                $('.search_gamer_block').toggleClass('hidden')
-                $('.blar').toggleClass('hidden');
-                $('.start_game').addClass('hidden');
-                $('.gmaer1').addClass('hidden');
-                $('.gmaer2').addClass('hidden');
-                $('.map').removeClass('map_animate');
-                $('.map').removeClass('hidden');
-                 clearTimeout(aniamtintim);
-                
-            })
-            $('.blar').click(function(){
-                $(this).toggleClass('hidden');
-                $('.search_gamer_block').toggleClass('hidden');
-
-            });
-
-          function stGame(){
-                   
-                $('.start_game').addClass('hidden');
-                $('.question_page').removeClass('hidden');
-
-
-                 var timeleft = 10;
-                     var transitonFor=10;
-var downloadTimer = setInterval(function(){
-   
-  document.getElementById("game_timer_time").innerHTML =timeleft;
-  document.getElementById("timer_line").style.width=0+'%';
-  document.getElementById("timer_line").style.transition = transitonFor+'s';
-  document.getElementById("timer_line").style.transitionTimingFunction='linear'
-
-  if(timeleft <= 0){
-    clearInterval(downloadTimer)
-  }
-timeleft--;
-  
-
-},1000);
-            }
-
-
-
-
-
                  $('#sidebarCollapse').on('click', function () {
                      $('#sidebar').toggleClass('active');
                      $(this).toggleClass('active');
